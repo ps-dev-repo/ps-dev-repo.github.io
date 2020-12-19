@@ -28,7 +28,7 @@
       inicio();
       
       
-      async guess_function()
+      async function guess_function()
       {
         try { canvas2} catch{ canvas2 = document.createElement("canvas")};
         canvas2.width = 28;
@@ -67,7 +67,7 @@
         }
       }
       
-      async cargarModeloLocal()
+      async function cargarModeloLocal()
       {
         try{await tf.loadLayersModel("localstorage://modelo_entrenado_MNIST_web").then((respuesta) => {modelo=respuesta})
            alert("modelo cargado desde el navegador")} catch{alert("no hay modelo en el navegador")};
