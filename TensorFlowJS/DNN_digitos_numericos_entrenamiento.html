@@ -1,1 +1,212 @@
+<html lang="en">
+  <head>
+    <title>Red Neuronal números escritos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js">
+      // Your code will go here
+      // open up your console - if everything loaded properly you should see the correct version number
+      // librería TF.JS 
+      console.log('TFjs version:', tf.version);
+    </script>
+  </head>
 
+  <body style="background: gray">
+    <h1>X</h1>
+    <canvas width="250" height="250" style= "background: white">
+    </canvas>
+    <script>
+    // TODO EL CÓDIGO JUNTO
+      inicio = async function () 
+      {
+        try{await tf.loadLayersModel("localstorage://modelo_DNN_digitos_numericos").then((respuesta) => {modelo=respuesta})} catch{await tf.loadLayersModel("./Modelo_pre_entrenado/model.json").then((respuesta) => {modelo=respuesta})};
+        canvas = document.querySelector("canvas");
+        signaturePad = new SignaturePad(canvas, {maxWidth:11, minWidth:9, velocityFilterWeight: 0});
+        document.querySelector("body > h1").textContent = Math.floor(Math.random()*10);
+        modelo.compile({loss:'categoricalCrossentropy', optimizer:'sgd', metrics:'accuracy'})
+      }
+      inicio();
+      
+      
+      async function guess_function()
+      {
+        try { canvas2} catch{ canvas2 = document.createElement("canvas")
+        document.body.appendChild(canvas2);
+        canvas2.width = 28;
+        canvas2.height = 28;
+        canvas2.style.background = "white";};
+        canvas2_cont = canvas2.getContext("2d");
+        canvas2_cont.clearRect(0,0, canvas2.width, canvas2.height);
+        canvas2_cont.drawImage(canvas, 0,0, canvas2.width, canvas2.height);
+        
+        try { canvas_intermedio} catch{ canvas_intermedio = document.createElement("canvas")
+        canvas_intermedio.width = 20;
+        canvas_intermedio.height = 20;
+        canvas_intermedio.style.background = "white";};
+        canvas_intermedio_cont = canvas_intermedio.getContext("2d");
+        canvas_intermedio_cont.clearRect(0,0, canvas_intermedio.width, canvas_intermedio.height);
+        canvas_intermedio_cont.drawImage(canvas2, 0,0, canvas_intermedio.width, canvas_intermedio.height);
+//         canvas2_cont.clearRect(0,0, canvas2.width, canvas2.height);
+        canvas2_cont.drawImage(canvas_intermedio, 0,0, canvas2.width, canvas2.height);
+//         canvas_intermedio_cont.clearRect(0,0, canvas_intermedio.width, canvas_intermedio.height);
+        canvas_intermedio_cont.drawImage(canvas2, 0,0, canvas_intermedio.width, canvas_intermedio.height);
+        canvas2_cont.clearRect(0,0, canvas2.width, canvas2.height);
+        canvas2_cont.drawImage(canvas_intermedio, 0,0, canvas2.width, canvas2.height);
+        canvas_intermedio_cont.clearRect(0,0, canvas_intermedio.width, canvas_intermedio.height);
+        canvas_intermedio_cont.drawImage(canvas2, 0,0, canvas_intermedio.width, canvas_intermedio.height);
+        canvas2_cont.clearRect(0,0, canvas2.width, canvas2.height);
+        canvas2_cont.drawImage(canvas_intermedio, 0,0, canvas2.width, canvas2.height);
+        
+        canvas2_data = canvas2_cont.getImageData(0,0, canvas2.width, canvas2.height).data
+        canvas2_data_array_for_tensor = new Array(canvas2_data.length/4);
+        for (i=0; i < canvas2_data.length;i+=4)
+        {
+          canvas2_data_array_for_tensor[i/4] = canvas2_data[i+3] / 255;
+        }
+        predict = modelo.predict(tf.tensor(canvas2_data_array_for_tensor, [1,784]));
+        prediccion = (await predict.array())[0];
+        if (!confirm(prediccion.indexOf(Math.max(...prediccion)) + "  =>  " + prediccion[prediccion.indexOf(Math.max(...prediccion))]*100 + "%"))
+        {
+          var renglon ="~";
+          for (i=0;i<canvas2.height;i++)
+          {
+            for(j=0;j<canvas2.width;j++)
+            {
+              if(canvas2_data_array_for_tensor[i*canvas2.width+j])
+              {
+                renglon += "[+]";
+              } else {
+                renglon += "   ";
+              }
+            }
+            console.log(renglon+"\n");
+            renglon = i;
+          }
+          console.log(prediccion);
+          alert("0: "+prediccion[0].toFixed(5)+"\n"+"1: "+prediccion[1].toFixed(5)+"\n"+"2: "+prediccion[2].toFixed(5)+"\n"+"3: "+prediccion[3].toFixed(5)+"\n"+"4: "+prediccion[4].toFixed(5)+"\n"+"5: "+prediccion[5].toFixed(5)+"\n"+"6: "+prediccion[6].toFixed(5)+"\n"+"7: "+prediccion[7].toFixed(5)+"\n"+"8: "+prediccion[8].toFixed(5)+"\n"+"9: "+prediccion[9].toFixed(5))
+        }
+      }
+      
+      function cargarValor() 
+      {
+        
+        try { canvas2} catch{ canvas2 = document.createElement("canvas")
+        document.querySelector("body > div:nth-child(7)").insertAdjacentElement('afterend',canvas2)
+        canvas2.width = 28;
+        canvas2.height = 28;
+        canvas2.style.background = "white";};
+        canvas2_cont = canvas2.getContext("2d");
+        canvas2_cont.clearRect(0,0, canvas2.width, canvas2.height);
+        canvas2_cont.drawImage(canvas, 0,0, canvas2.width, canvas2.height);
+        
+        try { canvas_intermedio} catch{ canvas_intermedio = document.createElement("canvas")
+        canvas_intermedio.width = 20;
+        canvas_intermedio.height = 20;
+        canvas_intermedio.style.background = "white";};
+        canvas_intermedio_cont = canvas_intermedio.getContext("2d");
+        canvas_intermedio_cont.clearRect(0,0, canvas_intermedio.width, canvas_intermedio.height);
+        canvas_intermedio_cont.drawImage(canvas2, 0,0, canvas_intermedio.width, canvas_intermedio.height);
+//         canvas2_cont.clearRect(0,0, canvas2.width, canvas2.height);
+        canvas2_cont.drawImage(canvas_intermedio, 0,0, canvas2.width, canvas2.height);
+//         canvas_intermedio_cont.clearRect(0,0, canvas_intermedio.width, canvas_intermedio.height);
+        canvas_intermedio_cont.drawImage(canvas2, 0,0, canvas_intermedio.width, canvas_intermedio.height);
+        canvas2_cont.clearRect(0,0, canvas2.width, canvas2.height);
+        canvas2_cont.drawImage(canvas_intermedio, 0,0, canvas2.width, canvas2.height);
+        canvas_intermedio_cont.clearRect(0,0, canvas_intermedio.width, canvas_intermedio.height);
+        canvas_intermedio_cont.drawImage(canvas2, 0,0, canvas_intermedio.width, canvas_intermedio.height);
+        canvas2_cont.clearRect(0,0, canvas2.width, canvas2.height);
+        canvas2_cont.drawImage(canvas_intermedio, 0,0, canvas2.width, canvas2.height);
+        
+        canvas2_data = canvas2_cont.getImageData(0,0, canvas2.width, canvas2.height).data
+        canvas2_data_array_for_tensor = new Array(canvas2_data.length/4);
+        
+        for (i=0; i < canvas2_data.length;i+=4)
+        {
+          canvas2_data_array_for_tensor[i/4] = canvas2_data[i+3] / 255;
+        }
+        try { historial, historial_numero } catch{ historial = new Array; historial_numero = new Array}
+        historial.push(canvas2_data_array_for_tensor);
+        historial_numero.push(parseInt(document.querySelector("body > h1").textContent));
+        document.querySelector("body > h1").textContent = Math.floor(Math.random()*10);
+        canvas.getContext("2d").clearRect(0,0,canvas.width,canvas.height);
+      }
+      
+//       async function entrenarModelo()
+//       {
+//         if (typeof(Worker) !== "undefined")
+//         {
+//           if (typeof(w) == "undefined")
+//           {
+//             w = new Worker(entrenarModelo_worker());
+//           }
+//           w.onmessage = function(event) { alert(event.data); w.terminate(); w = undefined;};
+//         }
+//         else
+//         {
+//           alert("Sorry! No Web Worker support.");
+//         }
+//       }
+      
+      async function entrenarModelo()
+      {
+//         document.querySelector("body > h1").textContent += await " entrenando... ";
+        await console.log("entrenando... ");
+        ff = await modelo.fit(tf.tensor(historial,[historial.length,784]), tf.oneHot(historial_numero,10), {epochs:50, verbose:1, yieldEvery:'auto', callbacks:{onEpochEnd: (epoch, logs) =>
+          {
+            console.log(logs.acc*100);
+            document.querySelector("body > h1").textContent = document.querySelector("body > h1").textContent.substr(0,1) + " entrenando... " + epoch;
+          }
+        }})
+//         alert("Entrenado");
+        evaluacion = await modelo.evaluate(tf.tensor(historial,[historial.length,784]), tf.oneHot(historial_numero,10))
+        alert("evaluación => " + await evaluacion[1].array()*100 + "%");
+        pp = await modelo.predict(tf.tensor(historial,[historial.length,784]))
+        prediccion = (await pp.array()).map((arr)=>{return arr.indexOf(Math.max(...arr))});
+//         save_local = await modelo.save('localstorage://modelo_entrenado_MNIST_web')
+        document.querySelector("body > h1").textContent = document.querySelector("body > h1").textContent.substr(0,1);
+      }
+      
+      guardarLocal = async function()
+      {
+        save_local = await modelo.save('localstorage://modelo_DNN_digitos_numericos')
+      }
+      vaciarBuffer = async function()
+      {
+        historial = new Array; historial_numero = new Array;
+      }
+      
+      descargarModelo = async function()
+      {
+        save_file = await modelo.save('downloads://modelo_DNN_digitos_numericos')
+      }
+       
+      async function cargarModeloLocal()
+      {
+        try{await tf.loadLayersModel("localstorage://modelo_DNN_digitos_numericos").then((respuesta) => {modelo=respuesta})
+           alert("modelo cargado desde el navegador")} catch{alert("no hay modelo en el navegador")};
+      }
+    </script>
+    
+    
+    <div style="width: 250px;display: flex;justify-content: space-between;margin-block: inherit;">
+      <br>
+      <button onclick="cargarValor()" style="width: 86px; height: 76px;">Cargar valor</button>
+      <button onclick="signaturePad.clear()" style="width: 86px; height: 76px;">Limpiar pantalla</button>
+    </div>
+    <br>
+    <br>
+    
+    <div style="width: 250px;display: flex;justify-content: space-between;margin-block: inherit;">
+      <br>
+      <button onclick="entrenarModelo()" style="width: 86px; height: 76px;">Entrenar modelo</button>
+      <button onclick="vaciarBuffer()" style="width: 86px; height: 76px;">Vaciar Buffer</button>
+    </div>
+    <br>
+    <br>
+<!--     <button onclick="cargarModeloLocal()">Cargar modelo del navegador</button> -->
+    <button onclick="guardarLocal()">Guardar modelo del navegador</button>
+    <br>
+    <button onclick="localStorage.clear()">Borrar modelo del navegador</button>
+  </body>
+      
