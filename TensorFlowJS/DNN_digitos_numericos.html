@@ -19,8 +19,7 @@
     // TODO EL CÓDIGO JUNTO
       inicio = async function () 
       {
-        try{await tf.loadLayersModel("localstorage://modelo_entrenado_MNIST_web").then((respuesta) => {modelo=respuesta})} catch{await tf.loadLayersModel("./Modelo_pre_entrenado/model.json").then((respuesta) => {modelo=respuesta})};
-        canvas = document.querySelector("canvas");
+try{await tf.loadLayersModel("localstorage://modelo_DNN_digitos_numericos").then((respuesta) => {modelo=respuesta})} catch{await tf.loadLayersModel("./Modelo_pre_entrenado/model.json").then((respuesta) => {modelo=respuesta})};        canvas = document.querySelector("canvas");
         signaturePad = new SignaturePad(canvas, {maxWidth:11, minWidth:9, velocityFilterWeight: 0});
 //         document.querySelector("body > h1").textContent = Math.floor(Math.random()*10);
 //         modelo.compile({loss:'categoricalCrossentropy', optimizer:'sgd', metrics:'accuracy'})
