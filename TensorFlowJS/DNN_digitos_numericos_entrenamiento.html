@@ -152,9 +152,11 @@
       {
 //         document.querySelector("body > h1").textContent += await " entrenando... ";
         await console.log("entrenando... ");
-        ff = await modelo.fit(tf.tensor(historial,[historial.length,784]), tf.oneHot(historial_numero,10), {epochs:50, verbose:1, yieldEvery:'auto', callbacks:{onEpochEnd: (epoch, logs) =>
+        tensor_historial = tf.tensor(historial,[historial.length,784]);
+        tensor_historial_numero = tf.oneHot(historial_numero,10);
+        ff = await modelo.fit(tensor_historial, tensor_historial_numero, {epochs:100, verbose:1, yieldEvery:'auto', callbacks:{onEpochEnd: (epoch, logs) =>
           {
-            console.log(logs.acc*100);
+//             console.log(logs.acc*100);
             document.querySelector("body > h1").textContent = document.querySelector("body > h1").textContent.substr(0,1) + " entrenando... " + epoch;
           }
         }})
