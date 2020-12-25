@@ -154,7 +154,7 @@
         await console.log("entrenando... ");
         tensor_historial = tf.tensor(historial,[historial.length,784]);
         tensor_historial_numero = tf.oneHot(historial_numero,10);
-        ff = await modelo.fit(tensor_historial, tensor_historial_numero, {epochs:100, verbose:1, yieldEvery:'auto', callbacks:{onEpochEnd: (epoch, logs) =>
+        ff = await modelo.fit(tensor_historial, tensor_historial_numero, {epochs:1000, verbose:1, yieldEvery:'auto', callbacks:{onEpochEnd: (epoch, logs) =>
           {
 //             console.log(logs.acc*100);
             document.querySelector("body > h1").textContent = document.querySelector("body > h1").textContent.substr(0,1) + " entrenando... " + epoch;
