@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<head>
+    <title>
+        Polyys Screen Recorder
+    </title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <style type="text/css">
+        #video {
+                  border: 1px solid #999;
+                  width: 98%;
+                  max-width: 860px;
+                }
+
+                .error {
+                  color: red;
+                }
+
+                .warn {
+                  color: orange;
+                }
+
+                .info {
+                  color: darkgreen;
+                }
+        
+        * {
+            box-sizing: border-box;
+        }
+        /* Create two equal columns that floats next to each other */
+        .column {
+            float: left;
+            width: 50%;
+            padding: 10px;
+            height: 300px; /* Should be removed. Only for demonstration */
+        }
+        .row {
+            padding: 10px;
+        }
+        /* Clear floats after the columns */
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-3">
+<!--     <button type="button" class="btn btn-danger" id="stop" disabled>Stop</button> -->
+<!--     <button type="button" onclick="recordAudio()" class="btn btn-info">Record Audio</button> -->
+<!--     <button type="button" onclick="recordVideo()" class="btn btn-info">Record Video</button> -->
+    <button type="button" onclick="selectScreen()" class="btn btn-info">Select Screen</button>
+<!--     <button type="button" onclick="recordScreen()" class="btn btn-info">Record Screen</button> -->
+    <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="MicEnable">
+        <label class="form-check-label" for="MicEnable">Activar Micrófono</label>
+    </div>
+    <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="CursorEnable">
+        <label class="form-check-label" for="CursorEnable">Activar Cursor</label>
+    </div>
+        <h2 id="Grabando..." align="center" style="color: white">Grabando ...</h2>
+    <div class="p-5">
+<!--         <video autoplay height='480' width="640" muted></video> -->
+        <video id="video" autoplay muted></video>
+    </div>
+    <span>
+        <button type="button" onclick="recordSelectedScreen()" class="btn btn-success" id="start" disable> ▶ Start recording selected Screen</button>
+        <button type="button" class="btn btn-danger" id="stop" disabled>Stop</button>
+    </span>
+    <span>
+        <a id="download" style="display: none;"><button type="button" class="btn btn-primary mb-4"> Download</button></a>
+    </span>
+    </div>
+    
+    <br>
+    <br>
+    <div class='row'>
+        <div class='column'>
+            <span>
+                <strong>Log:</strong>
+                <br>
+                <pre id="log"></pre>
+            </span>
+        </div>
+        <div class='column'>
+            <span>
+                <strong>Download List:</strong>
+                <br>
+                <pre id="downloadList"></pre>
+            </span>
+        </div>
+    </div>
+        
+    <script>
+        let shouldStop = false;
+        let stopped = false;
+        let displayStream = null;
+        const videoElement = document.getElementsByTagName("video")[0];
+        const downloadLink = document.getElementById('download');
+        const stopButton = document.getElementById('stop');
+        const micEnable = document.getElementById('MicEnable');
+        const cursorEnable = document.getElementById('CursorEnable');
+        const grabandoText = document.querySelector("#Grabando\\.\\.\\.");
+        const logElem = document.getElementById("log");
+        const downloadList = document.getElementById("downloadList");
+        mimeTypeVar = 'video/mp4';
+        
+        console.log = msg => logElem.innerHTML += `${msg}<br>`;
+        console.error = msg => logElem.innerHTML += `<span class="error">${msg}</span><br>`;
+        console.warn = msg => logElem.innerHTML += `<span class="warn">${msg}<span><br>`;
+        console.info = msg => logElem.innerHTML += `<span class="info">${msg}</span><br>`;
+        
+        function startRecordUI() {
+            $('.btn-info').prop('disabled', true);
+            $('.form-check-input').prop('disabled', true);
+            $('#stop').prop('disabled', false);
+            $('#download').css('display', 'none');
+            $('#start').prop('disabled', true);
+            $("#Grabando\\.\\.\\.").prop("style","color: green")
+            
+        }
+        function stopRecordUI() {
+            $('.btn-info').prop('disabled', false);
+            $('.form-check-input').prop('disabled', false);
+            $('#stop').prop('disabled', true);
+            $('#download').css('display', 'block');
+            disableRecordUI();
+            $("#Grabando\\.\\.\\.").prop("style","color: white");
+        }
+        function enableRecordUI() {
+            $('#start').prop('disabled', false);
+            $('#start').prop("class","btn btn-success");
+        }
+        function disableRecordUI() {
+            $('#start').prop('disabled', true);
+            $('#start').prop("class","btn btn-info");
+        }
+        
+// //         const audioRecordConstraints = {
+// //             echoCancellation: true
+// //         }
+
+        stopButton.addEventListener('click', function () {
+            shouldStop = true;
+        });
+
+        handleRecord = function ({stream, mmimeType}) {
+            startRecordUI()
+            let recordedChunks = [];
+            stopped = false;
+            const mediaRecorder = new MediaRecorder(stream, {mimeType: mmimeType});
+
+            mediaRecorder.ondataavailable = function (e) {
+                if (e.data.size > 0) {
+                    recordedChunks.push(e.data);
+                }
+
+                if (shouldStop === true && stopped === false) {
+                    mediaRecorder.stop();
+                    stopped = true;
+                }
+            };
+
+            mediaRecorder.onstop = function () {
+                const recordedBlob = new Blob(recordedChunks, {
+                    type: mmimeType
+                });
+                recordedChunks = []
+                const filename = window.prompt('Enter file name');
+                downloadLink.href = URL.createObjectURL(recordedBlob);
+//                 downloadLink.download = `${filename || 'recording'}.webm`;
+                downloadLink.download = `${filename || 'recording'}.mp4`;
+                stopRecordUI();
+                videoElement.srcObject.getTracks().forEach( track => { track.stop()});                
+                videoElement.srcObject = null;
+                videoElement.src = downloadLink.href;
+                videoElement.controls = true;
+                videoElement.muted = false;
+                
+                downloadList.innerHTML += '<br> <a href=' + downloadLink + ' target="_blank">' + downloadLink + '</a>'
+            };
+
+            mediaRecorder.start(200);
+        };
+
+// //         async function recordAudio() {
+// //             const mimeType = 'audio/webm';
+// //             shouldStop = false;
+// //             const stream = await navigator.mediaDevices.getUserMedia({audio: audioRecordConstraints});
+// //             handleRecord({stream, mimeType})
+// //         }
+        
+// //         async function recordVideo() {
+// //             const mimeType = 'video/webm';
+// //             shouldStop = false;
+// //             const constraints = {
+// //                 audio: {
+// //                     "echoCancellation": true
+// //                 },
+// //                 video: {
+// //                     "width": {
+// //                         "min": 640,
+// //                         "max": 1024
+// //                     },
+// //                     "height": {
+// //                         "min": 480,
+// //                         "max": 768
+// //                     }
+// //                 }
+// //             };
+// //             const stream = await navigator.mediaDevices.getUserMedia(constraints);
+// //             videoElement.srcObject = stream;
+// //             handleRecord({stream, mimeType})
+// //         }
+        
+        async function selectScreen() {
+            logElem.innerHTML = "";
+            shouldStop = false;
+            if (cursorEnable.checked) {
+                MediaConstraints = {video: {cursor: "motion"}, audio: {'echoCancellation': false, "noiseSuppression": false}};
+            } else {
+                MediaConstraints = {video: {cursor: "never"}, audio: {'echoCancellation': false, "noiseSuppression": false}};
+            }
+            if(!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)) {
+                return window.alert('Screen Record not supported!')
+            }
+            let stream = null;
+            displayStream = null;
+//             const displayStream = await navigator.mediaDevices.getDisplayMedia({video: {cursor: "motion"}, audio: {'echoCancellation': false, "noiseSuppression": false}});
+            displayStream = await navigator.mediaDevices.getDisplayMedia(MediaConstraints);
+            
+            videoElement.removeAttribute('src')
+            videoElement.srcObject = displayStream;
+            videoElement.controls = false;
+            videoElement.muted = true;
+            dumpOptionsInfo();
+            
+            if(videoElement.srcObject != null) {
+                enableRecordUI();
+                if ((mimeTypeVar = window.prompt("mimeType",'video/mp4')) == null) { mimeTypeVar = 'video/mp4';};
+            } else {
+                disableRecordUI();
+                alert("No Screen selected");
+            }
+        }
+        
+        async function recordSelectedScreen() {            
+            let stream = null;
+            videoElement.removeAttribute('src');
+            stream = videoElement.srcObject;
+            
+            if (videoElement.srcObject != null) {
+                if (micEnable.checked) {
+                    const voiceStream = await navigator.mediaDevices.getUserMedia({ audio: {'echoCancellation': true}, video: false });
+                    let tracks = [...videoElement.srcObject.getTracks(), ...voiceStream.getAudioTracks()]
+                    stream = new MediaStream(tracks);
+                }
+                handleRecord({stream, mimeTypeVar});
+            } else {
+                alert("No Screen selected");
+            }
+        }
+        
+        async function recordScreen() {
+            shouldStop = false;
+            
+            if(!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)) {
+                return window.alert('Screen Record not supported!')
+            }
+            let stream = null;
+            const displayStream = await navigator.mediaDevices.getDisplayMedia({video: {cursor: "motion"}, audio: {'echoCancellation': false, "noiseSuppression": false}});
+            if(window.confirm("Record audio with screen?")){
+                const voiceStream = await navigator.mediaDevices.getUserMedia({ audio: {'echoCancellation': true}, video: false });
+                let tracks = [...displayStream.getTracks(), ...voiceStream.getAudioTracks()]
+                stream = new MediaStream(tracks);
+                handleRecord({stream, mimeTypeVar})
+            } else {
+                stream = displayStream;
+                handleRecord({stream, mimeTypeVar});
+            };
+            videoElement.removeAttribute('src')
+            videoElement.srcObject = stream;
+        }
+        
+        function dumpOptionsInfo() {
+            const tracks = videoElement.srcObject.getTracks();
+            tracks.forEach(track => {
+                console.info(track.kind + "Track settings:");
+                console.info(JSON.stringify(track.getSettings(), null, 2));
+                console.info(track.kind + "Track constraints:");
+                console.info(JSON.stringify(track.getConstraints(), null, 2));
+                console.info("\n");
+            });
+        }
+    </script>
+</body>
+
+
+</html>
